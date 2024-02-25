@@ -44,6 +44,7 @@ parser.add_argument('--input_video',type=str, default='bear.mp4')
 parser.add_argument('--prompt',type=str, default="a bear walking through stars, artstation")
 
 parser.add_argument('--init_image',type=str, default=None)
+parser.add_argument('--reconstruct', action='store_true', help='reconstruct the input video')
 
 args = parser.parse_args()
 
@@ -117,6 +118,8 @@ v2v_input_frames = rearrange(v2v_input_frames, '(b f) c h w -> b c f h w ', f=nu
 
 if args.init_image is not None:
     image_init = np.array(Image.open(args.init_image))
+elif args.reconstruct:
+    image_init = np_frames[0]
 else:
     image_init = None
 
