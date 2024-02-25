@@ -43,6 +43,8 @@ parser.add_argument('--init_noise_thres', type=float, default=0.1, help='thres f
 parser.add_argument('--input_video',type=str, default='bear.mp4')
 parser.add_argument('--prompt',type=str, default="a bear walking through stars, artstation")
 
+parser.add_argument('--init_image',type=str, default=None)
+
 args = parser.parse_args()
 
 control_mode = args.control_mode
@@ -113,6 +115,10 @@ v2v_input_frames =  torch.nn.functional.interpolate(
         ) 
 v2v_input_frames = rearrange(v2v_input_frames, '(b f) c h w -> b c f h w ', f=num_sample_frames)
 
+if args.init_image is not None:
+    image_init = np.array(Image.open(args.init_image))
+else:
+    image_init = None
 
 out = []
 for i in range(num_sample_frames//each_sample_frame):
@@ -121,7 +127,7 @@ for i in range(num_sample_frames//each_sample_frame):
             # images= v2v_input_frames[:,:,:each_sample_frame,:,:],
             controlnet_hint=control_maps[:,:,i*each_sample_frame-1:(i+1)*each_sample_frame-1,:,:] if i>0 else control_maps[:,:,:each_sample_frame,:,:],
             images=v2v_input_frames[:,:,i*each_sample_frame-1:(i+1)*each_sample_frame-1,:,:] if i>0 else v2v_input_frames[:,:,:each_sample_frame,:,:],
-            first_frame_output=out[-1] if i>0 else None,
+            first_frame_output=out[-1] if i>0 else image_init, # Use the last frame for reference, except for the first one which is generated
             prompt=testing_prompt,
             num_inference_steps=num_inference_steps,
             width=w,
